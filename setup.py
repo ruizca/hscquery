@@ -1,6 +1,6 @@
 from setuptools import setup
 
-with open("README.md", "r") as fh:
+with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 setup(
@@ -10,7 +10,7 @@ setup(
     author_email='angel.ruizca@gmail.com',
     description='Module for accesing the HSC-SSP database',
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type='text/x-rst',
     url='https://github.com/ruizca/hscquery',
     install_requires=['astropy<3'],
     py_modules=['hscquery'],

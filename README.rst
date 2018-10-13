@@ -38,6 +38,6 @@ A simple example of using ``hscquery``::
     coords = SkyCoord(34.0, -5.0, unit='deg')
     radius = 5.0 * u.arcsec
     
-    h = HSC(user='ruizca', survey='wide')
+    h = HSC(survey='wide')
     data = h.query_region(coords, radius)
     print data

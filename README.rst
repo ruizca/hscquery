@@ -26,3 +26,18 @@ Installation
 
 .. |astropy| image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
    :target: http://www.astropy.org/
+
+Example
+-------
+A simple example of using ``hscquery``::
+
+    from hscquery import HSC
+    from astropy import units as u
+    from astropy.coordinates import SkyCoord
+    
+    coords = SkyCoord(34.0, -5.0, unit='deg')
+    radius = 5.0 * u.arcsec
+    
+    h = HSC(user='ruizca', survey='wide')
+    data = h.query_region(coords, radius)
+    print data

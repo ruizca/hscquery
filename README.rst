@@ -1,5 +1,6 @@
 hscquery
 ========
+.. inclusion-marker-main-readme
 
 Module for querying the *Hyper Suprime-Cam Subaru Strategic Program*
 database. `HSC-SSP`_

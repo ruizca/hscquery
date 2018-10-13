@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Module for accesing the Hyper Suprime-Cam Subaru Strategic Program database.
+Module for accessing the Hyper Suprime-Cam Subaru Strategic Program database.
+
+A valid account for the HSC Archive is needed to use this module.
+See `HSC Online Registration
+<https://hsc-release.mtk.nao.ac.jp/datasearch/new_user/new>`_.
 
 Based on the python script developed by michitaro, NAOJ / HSC Collaboration.
 Source: https://hsc-gitlab.mtk.nao.ac.jp/snippets/17
@@ -20,33 +24,154 @@ from astropy.table import Table
 
 
 class QueryError(Exception):
+    """
+    Query error class.
+    """
     pass
 
 
 class HSC(object):
+    """
+    Main class for accessing the HSC-SSP database.
+
+    Parameters
+    ----------
+    survey : str, optional
+        Available surveys: 'wide', 'deep', 'udeep'.
+        By default is 'wide'.
+    release_version : str, optional
+        For the moment, only 'pdr1' is available (Public Data Release 1)
+    columns : str, optional
+        List of selected columns for query results.
+        See the `HSP-SSP schema <https://hsc-release.mtk.nao.ac.jp/schema/>`_
+        for details. By default is 'object_id, ra, dec'.
+    user : str or `None`, optional
+        Account name in the HSC-SSP database. If `None`, when an ``HSC``
+        object is initiated, the user can introduced the account name.
+    password_env : str, optional
+        The account's password can be stored in a system enviroment variable.
+        By default the password is searched at ``HSCPASSW``. If this
+        environment variable doesn't exist, the user is asked to introduce his
+        password. Use the `password_env` option with caution, since your
+        password can be easily exposed!
+    """
 
     version = 20181012.1
     url = 'https://hsc-release.mtk.nao.ac.jp/datasearch/api/catalog_jobs/'
 
 
-    def __init__(self, columns='object_id, ra, dec', survey='wide',
-                 release_version='pdr1', user=None, password_env='HSCPASSW'):
+    def __init__(self, survey='wide', release_version='pdr1',
+                 columns='object_id, ra, dec',
+                 user=None, password_env='HSCPASSW'):
 
         surveys = ['wide', 'deep', 'udeep']
 
-        if not (survey in surveys):
+        if survey not in surveys:
             error_message = 'Unknown survey: {}'
             raise ValueError(error_message.format(survey))
 
-        user, passw = self.login(user, password_env)
+        user, passw = self.__login(user, password_env)
+
         self.credential = {'account_name': user, 'password': passw}
         self.columns = columns
         self.survey = survey
         self.release_version = release_version
 
 
-    def login(self, user, password_env):
-        
+    def query_region(self, coords, radius, catalog='forced'):
+        """
+        Returns an astropy ``Table`` object with all sources
+        from catalog `catalog` within radius `radius` around
+        sky position `coords`.
+
+        Parameters
+        ----------
+        coords : ``SkyCoord``
+            Search around this position.
+        radius : ``Quantity``
+            Search radius (angular units)
+        catalog : str, optional
+            Available options: 'forced', 'meas', 'specz', or 'random'.
+            See the `HSP-SSP schema <https://hsc-release.mtk.nao.ac.jp/schema/>`_
+            for details. By default is 'forced'.
+        """
+
+        catalogs = ['forced', 'meas', 'specz', 'random']
+
+        if catalog not in catalogs:
+            error_message = 'Unknown survey: {}'
+            raise ValueError(error_message.format(catalog))
+
+        table = '{}_{}.{}'.format(self.release_version, self.survey, catalog)
+        data_raw = self.__cone_search(coords, radius, self.columns, table)
+        data = self.__clean_fits_output(data_raw)
+
+        return data
+
+
+    def send_query(self, sql, output_format='csv',
+                   output_file=None, delete_job=True):
+        """
+        Send an SQL query `sql`.
+
+        If `output_file` is ``None``, a preview of the results is shown.
+        Otherwise, results are saved in a file with name `output_file` and
+        in the format defined by `output_format`.
+
+        Parameters
+        ----------
+        sql : str
+            SQL query.
+        output_format : str, optional
+            Available formats: 'csv', 'csv.gz', 'sqlite3', or 'fits'.
+        output_file : str or ``None``
+            Name of the file for storing the query results. If ``None``,
+            a preview of the results is shown.
+        delete_job : bool
+            Delete job and results from the user space. By default is ``True``.
+        """
+        formats = ['csv', 'csv.gz', 'sqlite3', 'fits']
+
+        try:
+            if output_file is None:
+                self.__preview(self.credential, sql, sys.stdout)
+
+            else:
+                if output_format not in formats:
+                    error_message = 'Unknown output format: {}'
+                    raise ValueError(error_message.format(output_format))
+
+                job = self.__submit_job(self.credential, sql, output_format)
+                self.__block_until_job_finishes(self.credential, job['id'])
+
+                with open(output_file, 'w') as output:
+                    self.__download(self.credential, job['id'], output)
+
+                if delete_job:
+                    self.__delete_job(self.credential, job['id'])
+
+        except urllib2.HTTPError, error:
+            if error.code == 401:
+                print >> sys.stderr, 'invalid id or password.'
+
+            if error.code == 406:
+                print >> sys.stderr, error.read()
+
+            else:
+                print >> sys.stderr, error
+
+        except QueryError, error:
+            print >> sys.stderr, error
+
+        except KeyboardInterrupt:
+            if job is not None:
+                self.__job_cancel(self.credential, job['id'])
+
+            raise
+
+
+    def __login(self, user, password_env):
+
         if user is None:
             user = raw_input("HSC-SSP user: ")
 
@@ -60,105 +185,47 @@ class HSC(object):
         return user, passw
 
 
-    def query_region(self, coords, radius, catalog='forced'):
-        """
-        Returns an astropy Table object with all sources of 
-        catalog within radius around coords.
+    def __cone_search(self, coords, radius,
+                      columns='object_id, ra, dec',
+                      table='pdr1_udeep.forced'):
 
-        coords: search around this position (SkyCoord object)
-        radius: search radius (Quantity object, in angular units)
-        catalog: 'forced', 'meas', 'specz', 'random'
-                 (see https://hsc-release.mtk.nao.ac.jp/schema/)
-        """
-
-        catalogs = ['forced', 'meas', 'specz', 'random']
-
-        if not (catalog in catalogs):
-            error_message = 'Unknown survey: {}'
-            raise ValueError(error_message.format(catalog))
-
-        table = '{}_{}.{}'.format(self.release_version, self.survey, catalog)
-        
         query = 'SELECT {} FROM {} WHERE coneSearch(coord, {}, {}, {})'
-        query = query.format(self.columns, table, 
-                             coords.ra.deg, coords.dec.deg, 
+        query = query.format(columns, table,
+                             coords.ra.deg, coords.dec.deg,
                              radius.to(u.arcsec).value)
 
         with tempfile.NamedTemporaryFile() as temp:
-            self.send_query(query, out_format='fits', output_file=temp.name)
+            self.send_query(query, output_format='fits', output_file=temp.name)
 
             temp.seek(0)
-            data_raw = Table.read(temp.name, format='fits')
+            data = Table.read(temp.name, format='fits')
+
+        return data
+
+
+    def __clean_fits_output(self, fits_table):
 
         # Remove isnull columns
-        columns = [col for col in data_raw.colnames 
+        columns = [col for col in fits_table.colnames
                    if not col.endswith('_isnull')]
 
-        return data_raw[columns]
+        return fits_table[columns]
 
 
-    def send_query(self, sql, out_format='csv', 
-                   delete_job=True, output_file=None):
-
-        formats = ['csv', 'csv.gz', 'sqlite3', 'fits']
-
-        try:
-            if output_file is None:
-                self.__preview(self.credential, sql, sys.stdout)
-
-            else:
-                if not (out_format in formats):
-                    error_message = 'Unknown output format: {}'
-                    raise ValueError(error_message.format(out_format))
-
-                job = self.__submitJob(self.credential, sql, out_format)
-                self.__blockUntilJobFinishes(self.credential, job['id'])
-
-                with open(output_file, 'w') as output:
-                    self.__download(self.credential, job['id'], output)
-
-                if delete_job:
-                    self.__deleteJob(self.credential, job['id'])
-
-        except urllib2.HTTPError, e:
-            if e.code == 401:
-                print >> sys.stderr, 'invalid id or password.'
-
-            if e.code == 406:
-                print >> sys.stderr, e.read()
-
-            else:
-                print >> sys.stderr, e
-
-        except QueryError, e:
-            print >> sys.stderr, e
-
-        except KeyboardInterrupt:
-            if job is not None:
-                self.__jobCancel(self.credential, job['id'])
-
-            raise
-
-    
-    def __httpJsonPost(self, url, data):
+    def __http_json_post(self, url, data):
 
         data['clientVersion'] = self.version
-        postData = json.dumps(data)
+        post_data = json.dumps(data)
         headers = {'Content-type': 'application/json'}
 
-        return self.__httpPost(url, postData, headers)
-    
-    
-    def __httpPost(self, url, postData, headers):
-
-        req = urllib2.Request(url, postData, headers)
+        req = urllib2.Request(url, post_data, headers)
         res = urllib2.urlopen(req)
 
         return res
-    
-    
-    def __submitJob(self, credential, sql, out_format, 
-                    nomail=True, skip_syntax_check=True):
+
+
+    def __submit_job(self, credential, sql, out_format,
+                     nomail=True, skip_syntax_check=True):
 
         url = self.url + 'submit'
         catalog_job = {
@@ -168,34 +235,34 @@ class HSC(object):
             'release_version'         : self.release_version,
         }
 
-        postData = {'credential': credential, 'catalog_job': catalog_job, 
-                    'nomail': nomail, 'skip_syntax_check': skip_syntax_check}
+        post_data = {'credential': credential, 'catalog_job': catalog_job,
+                     'nomail': nomail, 'skip_syntax_check': skip_syntax_check}
 
-        res = self.__httpJsonPost(url, postData)
+        res = self.__http_json_post(url, post_data)
         job = json.load(res)
 
         return job
-    
-    
-    def __jobStatus(self, credential, job_id):
+
+
+    def __job_status(self, credential, job_id):
 
         url = self.url + 'status'
-        postData = {'credential': credential, 'id': job_id}
+        post_data = {'credential': credential, 'id': job_id}
 
-        res = self.__httpJsonPost(url, postData)
+        res = self.__http_json_post(url, post_data)
         job = json.load(res)
 
         return job
-    
-    
-    def __jobCancel(self, credential, job_id):
+
+
+    def __job_cancel(self, credential, job_id):
 
         url = self.url + 'cancel'
-        postData = {'credential': credential, 'id': job_id}
+        post_data = {'credential': credential, 'id': job_id}
 
-        self.__httpJsonPost(url, postData)
-    
-    
+        self.__http_json_post(url, post_data)
+
+
     def __preview(self, credential, sql, out):
 
         url = self.url + 'preview'
@@ -203,28 +270,29 @@ class HSC(object):
             'sql'             : sql,
             'release_version' : self.release_version,
         }
-        postData = {'credential': credential, 'catalog_job': catalog_job}
-        res = self.__httpJsonPost(url, postData)
+
+        post_data = {'credential': credential, 'catalog_job': catalog_job}
+        res = self.__http_json_post(url, post_data)
         result = json.load(res)
-    
+
         writer = csv.writer(out)
         for row in result['result']['rows']:
             writer.writerow(row)
-    
+
         result_nrows = len(result['result']['rows'])
         if result['result']['count'] > result_nrows:
             error_message = 'only top {:d} records are displayed !'
-            raise QueryError,  error_message.format(result_nrows)
-    
-    
-    def __blockUntilJobFinishes(self, credential, job_id):
+            raise QueryError, error_message.format(result_nrows)
+
+
+    def __block_until_job_finishes(self, credential, job_id):
 
         max_interval = 5 * 60 # sec.
         interval = 1
 
         while True:
             time.sleep(interval)
-            job = self.__jobStatus(credential, job_id)
+            job = self.__job_status(credential, job_id)
 
             if job['status'] == 'error':
                 raise QueryError, 'query error: {}'.format(job['error'])
@@ -240,22 +308,20 @@ class HSC(object):
     def __download(self, credential, job_id, out):
 
         url = self.url + 'download'
-        postData = {'credential': credential, 'id': job_id}
+        post_data = {'credential': credential, 'id': job_id}
 
-        res = self.__httpJsonPost(url, postData)
-        bufSize = 64 * 1<<10 # 64k
+        res = self.__http_json_post(url, post_data)
+        buffer_size = 64 * 1<<10 # 64k
 
         while True:
-            buf = res.read(bufSize)
+            buf = res.read(buffer_size)
             out.write(buf)
-            if len(buf) < bufSize:
+            if len(buf) < buffer_size:
                 break
 
 
-    def __deleteJob(self, credential, job_id):
+    def __delete_job(self, credential, job_id):
         url = self.url + 'delete'
-        postData = {'credential': credential, 'id': job_id}
+        post_data = {'credential': credential, 'id': job_id}
 
-        self.__httpJsonPost(url, postData)
-            
-
+        self.__http_json_post(url, post_data)

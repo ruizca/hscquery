@@ -19,7 +19,7 @@ setuptools.setup(
         'Topic :: Scientific/Engineering :: Astronomy',
         'Topic :: Database :: Front-Ends',
         'Programming Language :: Python :: 2.7',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: BSD License',
         'Operating System :: POSIX :: Linux',
     ],
 )

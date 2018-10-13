@@ -9,7 +9,8 @@ Based on the python script developed by michitaro, NAOJ / HSC Collaboration.
 ## Dependencies
 `hscquery` depends on ``Astropy``
 
-## Install
-`<pip install hscquery>`
+## Installation
+``hscquery`` can be easily installed through pip:
+> pip install hscquery
 
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)

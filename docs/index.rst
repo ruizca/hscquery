@@ -10,7 +10,8 @@ Welcome to hscquery's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-    source/hscquery.rst
+   source/hscquery.rst
+
 
 .. include:: ../README.rst
    :start-after: inclusion-marker-main-readme

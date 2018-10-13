@@ -7,7 +7,7 @@ See `HSC Online Registration
 <https://hsc-release.mtk.nao.ac.jp/datasearch/new_user/new>`_.
 
 Based on the python script developed by michitaro, NAOJ / HSC Collaboration.
-Source: https://hsc-gitlab.mtk.nao.ac.jp/snippets/17
+[`Source <https://hsc-gitlab.mtk.nao.ac.jp/snippets/17>`_]
 """
 
 import os
@@ -56,8 +56,8 @@ class HSC(object):
         password can be easily exposed!
     """
 
-    version = 20181012.1
-    url = 'https://hsc-release.mtk.nao.ac.jp/datasearch/api/catalog_jobs/'
+    _version = 20181012.1
+    _url = 'https://hsc-release.mtk.nao.ac.jp/datasearch/api/catalog_jobs/'
 
 
     def __init__(self, survey='wide', release_version='pdr1',
@@ -214,7 +214,7 @@ class HSC(object):
 
     def __http_json_post(self, url, data):
 
-        data['clientVersion'] = self.version
+        data['clientVersion'] = self._version
         post_data = json.dumps(data)
         headers = {'Content-type': 'application/json'}
 
@@ -227,7 +227,7 @@ class HSC(object):
     def __submit_job(self, credential, sql, out_format,
                      nomail=True, skip_syntax_check=True):
 
-        url = self.url + 'submit'
+        url = self._url + 'submit'
         catalog_job = {
             'sql'                     : sql,
             'out_format'              : out_format,
@@ -246,7 +246,7 @@ class HSC(object):
 
     def __job_status(self, credential, job_id):
 
-        url = self.url + 'status'
+        url = self._url + 'status'
         post_data = {'credential': credential, 'id': job_id}
 
         res = self.__http_json_post(url, post_data)
@@ -257,7 +257,7 @@ class HSC(object):
 
     def __job_cancel(self, credential, job_id):
 
-        url = self.url + 'cancel'
+        url = self._url + 'cancel'
         post_data = {'credential': credential, 'id': job_id}
 
         self.__http_json_post(url, post_data)
@@ -265,7 +265,7 @@ class HSC(object):
 
     def __preview(self, credential, sql, out):
 
-        url = self.url + 'preview'
+        url = self._url + 'preview'
         catalog_job = {
             'sql'             : sql,
             'release_version' : self.release_version,
@@ -307,7 +307,7 @@ class HSC(object):
 
     def __download(self, credential, job_id, out):
 
-        url = self.url + 'download'
+        url = self._url + 'download'
         post_data = {'credential': credential, 'id': job_id}
 
         res = self.__http_json_post(url, post_data)
@@ -321,7 +321,7 @@ class HSC(object):
 
 
     def __delete_job(self, credential, job_id):
-        url = self.url + 'delete'
+        url = self._url + 'delete'
         post_data = {'credential': credential, 'id': job_id}
 
         self.__http_json_post(url, post_data)

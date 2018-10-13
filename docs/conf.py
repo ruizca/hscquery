@@ -17,6 +17,7 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 
+
 # -- Project information -----------------------------------------------------
 
 project = u'hscquery'
@@ -24,7 +25,7 @@ copyright = u'2018, Angel Ruiz'
 author = u'Angel Ruiz'
 
 # The short X.Y version
-version = u'0.1'
+version = u''
 # The full version, including alpha/beta/rc tags
 release = u''
 
@@ -41,7 +42,6 @@ release = u''
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
 ]
 
@@ -55,8 +55,8 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md']
-#source_suffix = '.rst'
+# source_suffix = ['.rst', '.md']
+source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'

@@ -12,7 +12,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/ruizca/hscquery',
-    install_requires=['astropy'],
+    install_requires=['astropy<3'],
     py_modules=['hscquery'],
     classifiers=[
         'Development Status :: 4 - Beta',

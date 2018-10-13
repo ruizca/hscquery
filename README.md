@@ -1,4 +1,4 @@
-# hscquery package
+# hscquery
 
 Module for querying the *Hyper Suprime-Cam Subaru Strategic Program* database.
 [HSC-SSP](https://hsc.mtk.nao.ac.jp/ssp/)

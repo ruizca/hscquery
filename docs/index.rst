@@ -8,8 +8,6 @@ Welcome to hscquery's documentation!
 	
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-
    source/hscquery.rst
 
 

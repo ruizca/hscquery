@@ -14,6 +14,8 @@ Welcome to hscquery's documentation!
 .. include:: ../README.rst
    :start-after: inclusion-marker-main-readme
 
+.. include:: source/hscquery.rst
+
 
 Indices and tables
 ==================

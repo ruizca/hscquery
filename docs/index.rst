@@ -7,8 +7,10 @@ Welcome to hscquery's documentation!
 ====================================
 	
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Contents:
+
+    source/hscquery.rst
 
 .. include:: ../README.rst
    :start-after: inclusion-marker-main-readme

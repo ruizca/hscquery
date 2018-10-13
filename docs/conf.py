@@ -24,7 +24,7 @@ copyright = u'2018, Angel Ruiz'
 author = u'Angel Ruiz'
 
 # The short X.Y version
-version = u''
+version = u'0.1'
 # The full version, including alpha/beta/rc tags
 release = u''
 
@@ -44,8 +44,8 @@ extensions = [
     'sphinx.ext.napoleon',
 ]
 
-napoleon_google_docstring = True
-napoleon_use_param = False
+napoleon_google_docstring = False
+napoleon_use_param = True
 napoleon_use_ivar = True
 
 # Add any paths that contain templates here, relative to this directory.

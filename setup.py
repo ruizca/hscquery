@@ -1,9 +1,9 @@
-import setuptools
+from setuptools import setup
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-setuptools.setup(
+setup(
     name='hscquery',
     version='0.1',
     author='Angel Ruiz',
@@ -11,8 +11,9 @@ setuptools.setup(
     description='Module for accesing the HSC-SSP database',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/pypa/sampleproject',
-    packages=setuptools.find_packages(),
+    url='https://github.com/ruizca/hscquery',
+    install_requires=['astropy'],
+    py_modules=['hscquery'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',

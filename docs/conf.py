@@ -17,16 +17,6 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 
-#from mock import Mock as MagicMock
-# 
-#class Mock(MagicMock):
-#    @classmethod
-#    def __getattr__(cls, name):
-#        return MagicMock()
-# 
-#MOCK_MODULES = ['astropy']
-#sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
 # -- Project information -----------------------------------------------------
 
 project = u'hscquery'
@@ -54,7 +44,7 @@ extensions = [
     'sphinx.ext.napoleon',
 ]
 
-napoleon_google_docstring = False
+napoleon_google_docstring = True
 napoleon_use_param = False
 napoleon_use_ivar = True
 

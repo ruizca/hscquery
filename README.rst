@@ -16,17 +16,9 @@ Dependencies
 Installation
 ------------
 
-``hscquery`` can be easily installed using ``pip``:
+``hscquery`` can be easily installed using ``pip``::
 
-``pip install hscquery``
-
-|astropy|
-
-.. _HSC-SSP: https://hsc.mtk.nao.ac.jp/ssp/
-.. _Source: https://hsc-gitlab.mtk.nao.ac.jp/snippets/17
-
-.. |astropy| image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
-   :target: http://www.astropy.org/
+    pip install hscquery
 
 Example
 -------
@@ -42,3 +34,11 @@ A simple example of using ``hscquery``::
     h = HSC(survey='wide')
     data = h.query_region(coords, radius)
     print data
+
+|astropy|
+
+.. _HSC-SSP: https://hsc.mtk.nao.ac.jp/ssp/
+.. _Source: https://hsc-gitlab.mtk.nao.ac.jp/snippets/17
+
+.. |astropy| image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+   :target: http://www.astropy.org/

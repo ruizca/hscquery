@@ -5,14 +5,14 @@ with open("README.rst", "r") as fh:
 
 setup(
     name='hscquery',
-    version='0.1.1',
+    version='0.2',
     author='Angel Ruiz',
     author_email='angel.ruizca@gmail.com',
     description='Module for accesing the HSC-SSP database',
     long_description=long_description,
     long_description_content_type='text/x-rst',
     url='https://github.com/ruizca/hscquery',
-    install_requires=['astropy<3'],
+    install_requires=['astropy', 'future'],
     py_modules=['hscquery'],
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -20,6 +20,7 @@ setup(
         'Topic :: Scientific/Engineering :: Astronomy',
         'Topic :: Database :: Front-Ends',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
         'License :: OSI Approved :: BSD License',
         'Operating System :: POSIX :: Linux',
     ],

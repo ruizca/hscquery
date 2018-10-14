@@ -2,8 +2,8 @@ hscquery
 ========
 .. inclusion-marker-main-readme
 
-Module for querying the *Hyper Suprime-Cam Subaru Strategic Program*
-database. `HSC-SSP`_
+``hscquery`` is a Python 2/3 module for querying the 
+*Hyper Suprime-Cam Subaru Strategic Program* database. `HSC-SSP`_
 
 Based on the python script developed by michitaro, NAOJ / HSC
 Collaboration. `Source`_
@@ -11,12 +11,13 @@ Collaboration. `Source`_
 Dependencies
 ------------
 
-``hscquery`` depends on ``Astropy``
+``hscquery`` depends on ``astropy`` and ``future`` packages.
 
 Installation
 ------------
 
-``hscquery`` can be easily installed using ``pip``: 
+``hscquery`` can be easily installed using ``pip``:
+
 ``pip install hscquery``
 
 |astropy|

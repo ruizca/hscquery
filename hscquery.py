@@ -9,10 +9,17 @@ See `HSC Online Registration
 Based on the python script developed by michitaro, NAOJ / HSC Collaboration.
 [`Source <https://hsc-gitlab.mtk.nao.ac.jp/snippets/17>`_]
 """
+from __future__ import print_function
+
+from future import standard_library
+standard_library.install_aliases()
+from builtins import input
+from builtins import object
+from builtins import bytes, str
 
 import os
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import time
 import sys
 import csv
@@ -104,6 +111,7 @@ class HSC(object):
 
         table = '{}_{}.{}'.format(self.release_version, self.survey, catalog)
         data_raw = self.__cone_search(coords, radius, self.columns, table)
+
         data = self.__clean_fits_output(data_raw)
 
         return data
@@ -144,24 +152,24 @@ class HSC(object):
                 job = self.__submit_job(self.credential, sql, output_format)
                 self.__block_until_job_finishes(self.credential, job['id'])
 
-                with open(output_file, 'w') as output:
+                with open(output_file, 'wb') as output:
                     self.__download(self.credential, job['id'], output)
 
                 if delete_job:
                     self.__delete_job(self.credential, job['id'])
 
-        except urllib2.HTTPError, error:
+        except urllib.error.HTTPError as error:
             if error.code == 401:
-                print >> sys.stderr, 'invalid id or password.'
+                print('invalid id or password.', file=sys.stderr)
 
             if error.code == 406:
-                print >> sys.stderr, error.read()
+                print(error.read(), file=sys.stderr)
 
             else:
-                print >> sys.stderr, error
+                print(error, file=sys.stderr)
 
-        except QueryError, error:
-            print >> sys.stderr, error
+        except QueryError as error:
+            print(error, file=sys.stderr)
 
         except KeyboardInterrupt:
             if job is not None:
@@ -173,7 +181,7 @@ class HSC(object):
     def __login(self, user, password_env):
 
         if user is None:
-            user = raw_input("HSC-SSP user: ")
+            user = input('HSC-SSP user: ')
 
         password_from_envvar = os.environ.get(password_env, '')
         if password_from_envvar != '':
@@ -218,8 +226,8 @@ class HSC(object):
         post_data = json.dumps(data)
         headers = {'Content-type': 'application/json'}
 
-        req = urllib2.Request(url, post_data, headers)
-        res = urllib2.urlopen(req)
+        req = urllib.request.Request(url, post_data.encode(), headers)
+        res = urllib.request.urlopen(req)
 
         return res
 
@@ -281,8 +289,8 @@ class HSC(object):
 
         result_nrows = len(result['result']['rows'])
         if result['result']['count'] > result_nrows:
-            error_message = 'only top {:d} records are displayed !'
-            raise QueryError, error_message.format(result_nrows)
+            error_message = 'only top {:d} records are displayed!'
+            raise QueryError(error_message.format(result_nrows))
 
 
     def __block_until_job_finishes(self, credential, job_id):
@@ -295,7 +303,7 @@ class HSC(object):
             job = self.__job_status(credential, job_id)
 
             if job['status'] == 'error':
-                raise QueryError, 'query error: {}'.format(job['error'])
+                raise QueryError('query error: {}'.format(job['error']))
 
             if job['status'] == 'done':
                 break

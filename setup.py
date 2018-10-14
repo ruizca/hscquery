@@ -8,7 +8,7 @@ setup(
     version='0.2',
     author='Angel Ruiz',
     author_email='angel.ruizca@gmail.com',
-    description='Module for accesing the HSC-SSP database',
+    description='Module for accessing the HSC-SSP database',
     long_description=long_description,
     long_description_content_type='text/x-rst',
     url='https://github.com/ruizca/hscquery',

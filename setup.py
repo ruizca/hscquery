@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setup(
     name='hscquery',
-    version='0.2',
+    version='0.2.1',
     author='Angel Ruiz',
     author_email='angel.ruizca@gmail.com',
     description='Module for accessing the HSC-SSP database',

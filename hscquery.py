@@ -71,7 +71,10 @@ class HSC(object):
                  columns='object_id, ra, dec',
                  user=None, password_env='HSCPASSW'):
 
-        surveys = ['wide', 'deep', 'udeep']
+        if release_version == 'pdr1':
+            surveys = ['wide', 'deep', 'udeep']
+        else:
+            surveys = ['wide', 'dud']
 
         if survey not in surveys:
             error_message = 'Unknown survey: {}'
